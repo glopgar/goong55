@@ -1,5 +1,7 @@
 # Goong55 — web emulation of a Moog System 55-style modular synthesizer
 
+![Goong55: the modular cabinet with patch cables, the keyboard and the effect pedals](screen.png)
+
 A static web app with no dependencies and no build step (AudioWorklet + Web MIDI).
 
 ```bash
