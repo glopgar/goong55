@@ -1,6 +1,6 @@
 import { Engine } from './engine.js';
 
-class System55Processor extends AudioWorkletProcessor {
+class Goong55Processor extends AudioWorkletProcessor {
   constructor() {
     super();
     this.engine = null;
@@ -37,4 +37,4 @@ class System55Processor extends AudioWorkletProcessor {
     return true;
   }
 }
-registerProcessor('system55', System55Processor);
+registerProcessor('goong55', Goong55Processor);

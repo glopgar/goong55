@@ -21,7 +21,6 @@ const SEQ_TRIG = [['seq.clk', 'mult2.a1'], ['mult2.a2', 'ifc.va'], ['mult2.a3', 
 const SEQ_TRIG1 = [['ifc.sa', 'dly.in1'], ['dly.o1', 'eg1.trig'], ['dly.o2', 'eg2.trig']];
 const DLY = { mode: 1, t1: 0, t2: 0 };
 const osc = (...list) => list.map((o, i) => [o, `mix1.i${i + 1}`]);
-const noOut = (cables) => cables.filter(([a]) => a !== 'vca1.outp'); // to insert pedals after VCA 1
 const PLUCK = { eg1: { t1: 0.3, t2: 5, es: 0, t3: 3 }, eg2: { t1: 0.2, t2: 4.3, es: 0, t3: 3 } };
 
 export const FACTORY = [
@@ -233,10 +232,8 @@ export const FACTORY = [
       kbd: { prio: 1 }, o1a: { range: 1 }, o1b: { range: 1, freq: 0.1 }, mix1: { l3: 0 },
       lpf: { freq: -2, regen: 5 }, att: { a1: 5 }, ...PLUCK,
       seq: { rngA: 0, ...tempo(7.3), ...notes('a', [0, 0, 12, 0, 7, 0, 10, 12]) },
-      echo: { time: 7.73, fb: 5, mix: 5 }, reverb: { decay: 5, mix: 2.5 },
     },
-    cables: [...noOut(VOICE), ...SEQ_TRIG, ...osc('o1a.saw', 'o1b.rect'), ['seq.outA1', 'drv1.f2'],
-      ['vca1.outp', 'echo.in'], ['echo.out', 'reverb.in'], ['reverb.l', 'out.l'], ['reverb.r', 'out.r']],
+    cables: [...VOICE, ...SEQ_TRIG, ...osc('o1a.saw', 'o1b.rect'), ['seq.outA1', 'drv1.f2'],],
     press: ['seq.on'],
   },
   {
@@ -245,10 +242,9 @@ export const FACTORY = [
       kbd: { prio: 1, glide: 3.5 }, o1b: { freq: 0.06 },
       lpf: { freq: 1, regen: 2.5 }, att: { a1: 3, a2: 0.15 },
       eg1: { t1: 1, t2: 6, es: 8, t3: 4.5 }, eg2: { t1: 2, t2: 6, es: 5, t3: 4.5 },
-      vco2: lfo(5.4), echo: { time: 7.2, fb: 4.5, mix: 4 }, reverb: { decay: 7, tone: 4, mix: 3.5 }, out: { level: 5 },
+      vco2: lfo(5.4), out: { level: 5 },
     },
-    cables: [...noOut(VOICE), ...KBD_TRIG, ...osc('o1a.saw', 'o1b.rect'), ['vco2.sine', 'att.i2'], ['att.o2', 'drv1.f2'],
-      ['vca1.outp', 'echo.in'], ['echo.out', 'reverb.in'], ['reverb.l', 'out.l'], ['reverb.r', 'out.r']],
+    cables: [...VOICE, ...KBD_TRIG, ...osc('o1a.saw', 'o1b.rect'), ['vco2.sine', 'att.i2'], ['att.o2', 'drv1.f2'],],
   },
   {
     cat: PED, name: 'Cuerdas con flanger y reverb',
@@ -256,10 +252,9 @@ export const FACTORY = [
       kbd: { prio: 1 }, o1b: { freq: 0.12 }, o1c: { freq: -0.1 },
       lpf: { freq: 1, regen: 0.5 }, att: { a1: 2 },
       eg1: { t1: 6, t2: 6, es: 8.5, t3: 6.5 }, eg2: { t1: 6.5, t2: 7, es: 6, t3: 6.5 },
-      flanger: { rate: 1.5, depth: 8, manual: 4.5, fb: 6 }, reverb: { decay: 8, tone: 4, mix: 4.5 }, out: { level: 4.3 },
+      out: { level: 4.3 },
     },
-    cables: [...noOut(VOICE), ...KBD_TRIG, ...osc('o1a.saw', 'o1b.saw', 'o1c.saw'),
-      ['vca1.outp', 'flanger.in'], ['flanger.out', 'reverb.in'], ['reverb.l', 'out.l'], ['reverb.r', 'out.r']],
+    cables: [...VOICE, ...KBD_TRIG, ...osc('o1a.saw', 'o1b.saw', 'o1c.saw'),],
   },
   {
     cat: PED, name: 'Campanas lentas en una sala grande',
@@ -268,10 +263,8 @@ export const FACTORY = [
       lpf: { freq: 3, regen: 0 }, att: { a1: 0 }, out: { level: 4 },
       eg1: { t1: 0.3, t2: 7, es: 0, t3: 7 },
       seq: { rngA: 0, ...tempo(1.8), ...notes('a', [0, 7, 12, 15, 19, 15, 12, 7]) },
-      echo: { time: 9, fb: 5.5, mix: 3.5 }, reverb: { decay: 9, tone: 6, mix: 5 },
     },
-    cables: [...noOut(VOICE), ...SEQ_TRIG, ...osc('o1a.sine', 'o1b.sine', 'o2a.sine'), ['seq.outA1', 'drv1.f2'], ['seq.outA2', 'drv2.f2'],
-      ['vca1.outp', 'echo.in'], ['echo.out', 'reverb.in'], ['reverb.l', 'out.l'], ['reverb.r', 'out.r']],
+    cables: [...VOICE, ...SEQ_TRIG, ...osc('o1a.sine', 'o1b.sine', 'o2a.sine'), ['seq.outA1', 'drv1.f2'], ['seq.outA2', 'drv2.f2'],],
     press: ['seq.on'],
   },
 
@@ -371,3 +364,56 @@ export const FACTORY = [
 
   { cat: CATS[5], name: 'Sin cables', params: {}, cables: [] },
 ];
+
+// ------------------------------------------------------------------ pedalboard
+// Every patch leaves the modular through the pedal chain echo -> flanger -> reverb -> stereo output.
+// Only the pedals listed here are switched on for each patch (with these settings); the rest are bypassed.
+const echoT = (sec) => 10 * Math.log(sec / 0.02) / Math.log(50); // TIME knob position for a delay in seconds
+const steps = (n, hz) => echoT(n / hz);                           // ... for n sequencer steps at hz steps per second
+const E = (time, fb = 4, mix = 4) => ({ time, fb, mix });
+const R = (decay = 6, mix = 3, tone = 5) => ({ decay, mix, tone });
+const F = (rate = 3, depth = 7, manual = 4, fb = 5) => ({ rate, depth, manual, fb });
+const PEDAL_FX = {
+  'Bajo clásico · 3 osciladores': {},
+  'Bajo redondo de triángulo': {},
+  'Solista con portamento y vibrato': { echo: E(echoT(0.38), 4, 3.5), reverb: R(6.5, 3) },
+  'Sync lead': { echo: E(echoT(0.3), 4.5, 3.5) },
+  'Solista en quintas paralelas': { reverb: R(7, 3.5) },
+  'Metales': { reverb: R(5.5, 2.5) },
+  'Berlín · ostinato de 8 pasos': { echo: E(steps(3, 7.3), 4.5, 4) },
+  'Berlín · 16 pasos (el 962 alterna las filas A y B)': { echo: E(steps(3, 8), 4, 3.5), reverb: R(5, 2) },
+  'Bajo en octavas · disco electrónico': { echo: E(steps(3, 8.3), 5, 4) },
+  'Secuencia rápida con barrido lento de filtro': { flanger: F(1, 8, 4, 6), echo: E(steps(3, 11), 4, 3) },
+  'Ritmo irregular (la 3ª fila controla el tiempo)': { reverb: R(5.5, 3) },
+  'Secuencia tímbrica (tono, filtro y ancho de pulso por paso)': { echo: E(steps(2, 6), 3.5, 3) },
+  'Secuencia en quintas paralelas': { reverb: R(6.5, 3.5) },
+  'Dúo secuenciado: bajo (fila A) y melodía (fila B)': { echo: E(steps(3, 6.5), 3.5, 3), reverb: R(5.5, 2.5) },
+  'Bajo y caja de ruido secuenciados': { reverb: R(4, 2.2, 6) },
+  'Silbido secuenciado (904A auto-oscilando)': { level: 6, echo: E(steps(3, 4), 4.5, 4), reverb: R(7, 3.5) },
+  'Secuencia lenta de campanas': { level: 4.5, reverb: R(8, 4.5, 6) },
+  'Frase de un disparo (cada tecla lanza la secuencia)': { echo: E(steps(2, 3.4), 4.5, 4), reverb: R(6.5, 3) },
+  'Berlín con eco (tres pasos de retardo)': { echo: E(steps(3, 7.3), 5, 5), reverb: R(5, 2.5) },
+  'Solista con eco y reverb': { echo: E(7.2, 4.5, 4), reverb: R(7, 3.5, 4) },
+  'Cuerdas con flanger y reverb': { level: 3.7, flanger: F(1.5, 8, 4.5, 6), reverb: R(8, 4.5, 4) },
+  'Campanas lentas en una sala grande': { echo: E(9, 5.5, 3.5), reverb: R(9, 5, 6) },
+  'Cuerdas PWM': { level: 4.5, reverb: R(7, 3.5, 4) },
+  'Órgano de armónicos': { reverb: R(6, 2.5) },
+  'Clavecín': { reverb: R(5, 2.5, 6) },
+  'Flauta': { reverb: R(6.5, 3.5) },
+  'Campana FM': { echo: E(echoT(0.45), 3.5, 2.5), reverb: R(8, 4, 6) },
+  'Coro de formantes (914)': { reverb: R(8, 4.5, 4) },
+  'Viento · ruido y resonancia': { reverb: R(7.5, 3.5) },
+  'Olas del mar': { reverb: R(6, 3, 4) },
+  'Sirena': { level: 4.5, echo: E(echoT(0.33), 5, 4), flanger: F(0.5, 6, 5, 4) },
+  'Tom sintético (filtro percutido)': { reverb: R(5, 3) },
+};
+for (const p of FACTORY) {
+  if (!p.cables.length) continue;
+  const fx = PEDAL_FX[p.name] || {};
+  const src = p.cables.find(([, to]) => to === 'out.l')[0];
+  p.cables = [...p.cables.filter(([, to]) => to !== 'out.l' && to !== 'out.r'),
+    [src, 'echo.in'], ['echo.out', 'flanger.in'], ['flanger.out', 'reverb.in'], ['reverb.l', 'out.l'], ['reverb.r', 'out.r']];
+  for (const k of ['echo', 'flanger', 'reverb']) p.params[k] = { ...fx[k], on: fx[k] ? 1 : 0 };
+  if (fx.level) p.params.out = { ...p.params.out, level: fx.level }; // the effects add level: trim the master
+}
+export const FX_NAMES = Object.keys(PEDAL_FX);

@@ -1,1 +1,1 @@
-{"name":"system55","private":true,"type":"module","scripts":{"start":"python3 serve.py","test":"node test/render.mjs"}}
+{"name":"goong55","private":true,"type":"module","scripts":{"start":"python3 serve.py","test":"node test/render.mjs"}}

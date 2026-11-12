@@ -1,4 +1,4 @@
-// System 55 emulation — DSP core.
+// Goong55 — DSP core of a Moog System 55-style modular emulation.
 // Pure ES module: used by the AudioWorklet and by the offline Node tests.
 // All signals are in volts. Pitch is 1 V/oct, 0 V = C2 (65.41 Hz) with an oscillator on 8'.
 // Audio is nominally ±1 V, envelopes peak at 5.5 V, V-triggers are 0/5 V, S-triggers are 0/1 (1 = closed).

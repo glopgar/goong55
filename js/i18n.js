@@ -6,7 +6,7 @@ export const lang = stored === 'es' || stored === 'en' ? stored : ((navigator.la
 export function setLang(l) { try { localStorage.setItem(LS, l); } catch { /* storage unavailable */ } location.reload(); }
 
 const S = {
-  title: ['System 55 — sintetizador modular', 'System 55 — modular synthesizer'],
+  title: ['Goong55 — sintetizador modular', 'Goong55 — modular synthesizer'],
   powerTip: ['Encender / apagar el audio', 'Audio on / off'],
   save: ['Guardar', 'Save'], saveTip: ['Guardar como patch de usuario', 'Save as a user patch'],
   del: ['Borrar', 'Delete'], delTip: ['Borrar el patch de usuario seleccionado', 'Delete the selected user patch'],
@@ -36,7 +36,7 @@ const S = {
   noMidi: ['Web MIDI no disponible', 'Web MIDI not available'],
   channel: [' · canal {0}', ' · channel {0}'],
   kbHint: ['Ratón, MIDI o teclado del ordenador:<br>A W S E D F T G Y H U J K<br>Z / X: octava', 'Mouse, MIDI or computer keyboard:<br>A W S E D F T G Y H U J K<br>Z / X: octave'],
-  helpTitle: ['System 55 — ayuda rápida', 'System 55 — quick help'],
+  helpTitle: ['Goong55 — ayuda rápida', 'Goong55 — quick help'],
   help: [`<li><b>POWER</b> enciende y apaga el audio. Si el navegador lo bloquea al cargar, se enciende con tu primer clic.</li>
   <li><b>Mandos</b>: arrastra arriba/abajo o usa la rueda; <kbd>Shift</kbd> = ajuste fino; doble clic = valor por defecto.</li>
   <li><b>Cables</b>: arrastra de un jack a otro. Para quitar un cable, tira de un extremo y suéltalo fuera. Un cable por jack; usa los <b>994 Multiples</b> para repartir una señal.</li>

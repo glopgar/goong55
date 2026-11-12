@@ -46,7 +46,7 @@ async function start() {
   starting = (async () => {
     const c = new AudioContext({ latencyHint: 'interactive' });
     await c.audioWorklet.addModule('dsp/worklet.js');
-    node = new AudioWorkletNode(c, 'system55', { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [2] });
+    node = new AudioWorkletNode(c, 'goong55', { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [2] });
     node.port.onmessage = (e) => { if (e.data.type === 'state') ui.setState(e.data.state); };
     node.connect(c.destination);
     ctx = c;

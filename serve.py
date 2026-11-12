@@ -8,5 +8,5 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
 port = int(sys.argv[1]) if len(sys.argv) > 1 else 8055
-print(f'System 55: http://localhost:{port}/   ·   secuenciador: http://localhost:{port}/sequencer.html')
+print(f'Goong55: http://localhost:{port}/')
 http.server.ThreadingHTTPServer(('', port), Handler).serve_forever()
