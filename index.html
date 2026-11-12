@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>System 55 — sintetizador modular</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="css/style.css?v=2">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="gSkirt" cx="42%" cy="30%" r="75%">
+      <stop offset="0" stop-color="#47474a"/><stop offset=".55" stop-color="#19191b"/><stop offset="1" stop-color="#050505"/>
+    </radialGradient>
+    <radialGradient id="gBody" cx="40%" cy="28%" r="80%">
+      <stop offset="0" stop-color="#2c2c2e"/><stop offset="1" stop-color="#0a0a0b"/>
+    </radialGradient>
+    <linearGradient id="gCap" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/><stop offset=".28" stop-color="#b4b7bc"/><stop offset=".5" stop-color="#f3f4f5"/>
+      <stop offset=".74" stop-color="#84878d"/><stop offset="1" stop-color="#d6d8db"/>
+    </linearGradient>
+    <radialGradient id="gPlug" cx="38%" cy="30%" r="75%">
+      <stop offset="0" stop-color="#5a5a5e"/><stop offset=".6" stop-color="#1b1b1d"/><stop offset="1" stop-color="#000"/>
+    </radialGradient>
+    <filter id="fCable" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="3" dy="7" stdDeviation="4" flood-color="#000" flood-opacity=".55"/>
+    </filter>
+  </defs>
+</svg>
+
+<header id="bar">
+  <button id="power" class="power" data-i18n-title="powerTip"><span class="led"></span>POWER</button>
+  <div class="grp">
+    <label>Patch</label>
+    <select id="preset"></select>
+    <button id="save" data-i18n="save" data-i18n-title="saveTip"></button>
+    <button id="del" data-i18n="del" data-i18n-title="delTip"></button>
+    <button id="export" data-i18n="export" data-i18n-title="exportTip"></button>
+    <button id="import" data-i18n="import" data-i18n-title="importTip"></button>
+    <input id="file" type="file" accept=".json,application/json" hidden>
+  </div>
+  <div class="grp">
+    <label>MIDI</label>
+    <select id="midiIn" data-i18n-title="midiInTip"></select>
+    <select id="midiCh" data-i18n-title="chATip"></select>
+    <select id="midiChB" data-i18n-title="chBTip"></select>
+    <button id="learn" data-i18n-title="learnTip">MIDI Learn</button>
+    <button id="maps" data-i18n="maps" data-i18n-title="mapsTip"></button>
+    <span id="midiMon">—</span>
+  </div>
+  <div class="grp">
+    <label>Cables</label>
+    <input id="cableOp" type="range" min="15" max="100" value="100" data-i18n-title="cableTip">
+    <label>Zoom</label>
+    <button id="zOut">−</button><button id="zFit" data-i18n="fit"></button><button id="zIn">+</button>
+    <button id="panic" data-i18n-title="panicTip">Panic</button>
+    <button id="help">?</button>
+    <select id="lang" data-i18n-title="langTip"><option value="es">Español</option><option value="en">English</option></select>
+  </div>
+</header>
+
+<main id="stage"><div id="scaler"><div id="rig"></div></div></main>
+
+<div id="menu" hidden></div>
+<dialog id="dlg"></dialog>
+<script type="module" src="js/main.js?v=2"></script>
+</body>
+</html>

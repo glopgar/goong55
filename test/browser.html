@@ -1,0 +1,60 @@
+<!doctype html><meta charset="utf-8"><title>selftest</title><pre id="log">running</pre>
+<iframe id="app" src="../index.html" width="1600" height="1200"></iframe>
+<script type="module">
+const log = []; const say = (...a) => { log.push(a.join(' ')); document.getElementById('log').textContent = log.join('\n'); };
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const fr = document.getElementById('app');
+await new Promise((r) => { fr.onload = r; if (fr.contentDocument && fr.contentDocument.readyState === 'complete') r(); });
+await wait(300);
+const w = fr.contentWindow, d = fr.contentDocument;
+w.addEventListener('error', (e) => say('PAGE ERROR', e.message));
+try {
+  const s55 = w.s55;
+  say('controls', Object.keys(s55.state.params).length, 'modules; cables', s55.state.cables.length);
+  const pe = (el, type, x, y) => el.dispatchEvent(new w.PointerEvent(type, { bubbles: true, clientX: x, clientY: y, button: 0, pointerId: 77 }));
+  const center = (el) => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
+  // knob drag
+  const k = d.querySelector('[data-ctl="lpf.regen"]'); let [x, y] = center(k);
+  const v0 = s55.host.getParam('lpf.regen');
+  pe(k, 'pointerdown', x, y); pe(k, 'pointermove', x, y - 44); pe(k, 'pointerup', x, y - 44);
+  say('knob drag lpf.regen', v0, '->', s55.host.getParam('lpf.regen').toFixed(2));
+  // switch
+  const sw = d.querySelector('[data-ctl="vca1.mode"]'); [x, y] = center(sw); pe(sw, 'pointerdown', x, y);
+  say('switch vca1.mode ->', s55.host.getParam('vca1.mode'));
+  // new cable: noise.w1 -> mix1.i4
+  const n0 = s55.state.cables.length;
+  const ja = d.querySelector('[data-jack="noise.w1"]'), jb = d.querySelector('[data-jack="mix1.i4"]');
+  let [ax, ay] = center(ja), [bx, by] = center(jb);
+  pe(ja, 'pointerdown', ax, ay); pe(ja, 'pointermove', bx, by); pe(ja, 'pointerup', bx, by);
+  say('cable add', n0, '->', s55.state.cables.length, JSON.stringify(s55.state.cables.at(-1)));
+  // invalid: out -> out must be refused
+  const jc = d.querySelector('[data-jack="noise.w2"]'), jd = d.querySelector('[data-jack="noise.p1"]');
+  [ax, ay] = center(jc); [bx, by] = center(jd);
+  pe(jc, 'pointerdown', ax, ay); pe(jc, 'pointerup', bx, by);
+  say('cable out->out refused:', s55.state.cables.length === n0 + 1);
+  // unplug: drag end to nowhere
+  [bx, by] = center(jb); pe(jb, 'pointerdown', bx, by); pe(jb, 'pointerup', 5, 5);
+  say('cable removed:', s55.state.cables.length === n0);
+  // MIDI learn + CC
+  s55.host.learnSelect('lpf.freq');
+  s55.midi.onMsg({ id: 'x' }, [0xb0, 74, 127]);
+  say('learned map', JSON.stringify(s55.midi.maps), 'value', s55.host.getParam('lpf.freq'));
+  s55.midi.onMsg({ id: 'x' }, [0xb0, 74, 0]);
+  say('cc 0 ->', s55.host.getParam('lpf.freq'));
+  s55.midi.unmap('lpf.freq'); s55.host.setParam('lpf.freq', -2); s55.host.setParam('lpf.regen', 3); s55.host.setParam('vca1.mode', 0);
+  // audio
+  d.getElementById('power').click();
+  await wait(1500);
+  say('power on:', d.getElementById('power').classList.contains('on'));
+  s55.midi.onMsg({ id: 'x' }, [0x90, 48, 100]);
+  await wait(800);
+  say('gate lamp:', d.querySelector('.panel[data-mod="kbd"] .lamp').classList.contains('on'), ' key lit:', !!d.querySelector('.key.on'));
+  const needle = d.querySelector('.needle').getAttribute('transform');
+  say('vu needle', needle);
+  s55.midi.onMsg({ id: 'x' }, [0x80, 48, 0]);
+  await wait(300);
+  say('gate lamp after off:', d.querySelector('.panel[data-mod="kbd"] .lamp').classList.contains('on'));
+} catch (e) { say('EXCEPTION', e.stack || e); }
+say('DONE');
+document.title = 'done';
+</script>
