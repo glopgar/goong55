@@ -2,7 +2,11 @@
 
 ![Goong55: the modular cabinet with patch cables, the keyboard and the effect pedals](screen.png)
 
+**Try it online: <https://glopgar.github.io/goong55/>** — nothing to install; it runs in Chrome, Edge or Firefox.
+
 A static web app with no dependencies and no build step (AudioWorklet + Web MIDI).
+
+## Running it locally
 
 ```bash
 python3 serve.py
