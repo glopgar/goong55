@@ -22,6 +22,7 @@ class Goong55Processor extends AudioWorkletProcessor {
         case 'off': en.noteOff(d.n, d.k | 0); break;
         case 'alloff': en.allOff(); break;
         case 'ctl': en.ctl(d.k, d.v); break;
+        case 'seq': en.seq(d.c, d.d || 0); break;
       }
     };
   }

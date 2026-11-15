@@ -16,10 +16,12 @@ export class Midi {
     this.maps = {};
     try { this.maps = JSON.parse(localStorage.getItem(LS)) || {}; } catch { /* no stored map */ }
     this.input = 'all'; this.channel = -1; this.channelB = 1; // voice B listens on MIDI channel 2 by default
+    this.clockDiv = 0; this.clockOffset = 0; this.ticks = 0; this.lastBeat = 0; this.lastTick = 0; this.period = 0; // MIDI clock -> 960: clocks per step (0 = off)
      this.learnKey = null; this.access = null;
   }
   save() { try { localStorage.setItem(LS, JSON.stringify(this.maps)); } catch { /* storage unavailable */ } }
   async init() {
+    this.host.midiDevices(this.devices()); // show the (empty) input list even without Web MIDI
     if (!navigator.requestMIDIAccess) return false;
     try { this.access = await navigator.requestMIDIAccess({ sysex: false }); } catch { return false; }
     this.access.onstatechange = () => this.bind();
@@ -32,14 +34,42 @@ export class Midi {
     return list;
   }
   bind() {
-    for (const inp of this.access.inputs.values()) inp.onmidimessage = (e) => this.onMsg(inp, e.data);
+    for (const inp of this.access.inputs.values()) inp.onmidimessage = (e) => this.onMsg(inp, e.data, e.timeStamp);
     this.host.midiDevices(this.devices());
   }
   unmap(key) { delete this.maps[key]; this.save(); }
   clear() { this.maps = {}; this.save(); }
-  onMsg(inp, data) {
+  // MIDI real-time: clock (24 per quarter note), start, continue, stop -> the 960 sequencer.
+  // clockOffset (ms) shifts the 960 steps against the incoming clock: positive = later, negative = earlier
+  // (to compensate audio latency). Earlier steps are predicted from the measured clock period.
+  realtime(st, ts) {
+    if (!this.clockDiv) return;
+    if (st === 0xfa) { this.ticks = 0; this.host.seq('start'); this.host.midiMonitor('Start'); }
+    else if (st === 0xfb) { this.host.seq('continue'); this.host.midiMonitor('Continue'); }
+    else if (st === 0xfc) { this.host.seq('stop'); this.host.midiMonitor('Stop'); }
+    else if (st === 0xf8) {
+      const now = performance.now(), j = this.ticks, div = this.clockDiv, off = this.clockOffset;
+      if (!(ts > 0) || ts > now) ts = now;
+      if (this.lastTick && ts - this.lastTick < 250) this.period += (ts - this.lastTick - this.period) * (this.period ? 0.2 : 1);
+      this.lastTick = ts;
+      const P = this.period || 20.83;
+      // The step belonging to clock m is due at (time of clock m) + off. At clock j we can schedule the one
+      // step whose due time falls within the next clock period: m = j + r with r = ceil(-off / P).
+      const r = Math.ceil(-off / P), m = j + r;
+      const late = (now - ts) / 1000; // time already lost between reception and this handler
+      if (j === 0 && r > 0) { for (let k = 0; k < r; k += div) this.host.seq('clock', 0); } // steps due before the first clock: fire now
+      if (m >= 0 && m % div === 0 && !(j === 0 && r > 0 && m < r)) this.host.seq('clock', Math.max(0, (r * P + off) / 1000 - late));
+      if (j % 24 === 0) {
+        if (this.lastBeat && now - this.lastBeat < 3000) this.host.midiMonitor(`Clock ♩ = ${Math.round(60000 / (now - this.lastBeat))}`);
+        this.lastBeat = now;
+      }
+      this.ticks++;
+    }
+  }
+  onMsg(inp, data, ts) {
     if (this.input !== 'all' && inp.id !== this.input) return;
     const st = data[0], d1 = data[1] || 0, d2 = data[2] || 0;
+    if (st >= 0xf8) { this.realtime(st, ts); return; }
     if (st >= 0xf0) return;
     const type = st & 0xf0, ch = st & 15;
     let src = null, x = 0, desc = '';

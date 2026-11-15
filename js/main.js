@@ -52,6 +52,7 @@ async function start() {
     ctx = c;
     c.onstatechange = onAudioState;
     post({ type: 'init', system: SYSTEM, params: flatParams(), wires: compileWires(state.cables) });
+    post({ type: 'seq', c: midi.clockDiv ? 'ext' : 'int' });
     if (wantOn) c.resume().catch(() => {}); else c.suspend().catch(() => {});
     onAudioState();
   })().catch((err) => { starting = null; toast(t('audioFail', err.message)); });
@@ -88,6 +89,7 @@ const host = {
   noteOn(n, v = 0.8, k = 0) { start(); post({ type: 'on', n, v, k }); if (!k) { held.add(n); ui.setKey(n, true); } },
   noteOff(n, k = 0) { post({ type: 'off', n, k }); if (!k) { held.delete(n); ui.setKey(n, false); } },
   ctl: (k, v) => post({ type: 'ctl', k, v }),
+  seq: (c, d = 0) => post({ type: 'seq', c, d }),
   panic() { for (const n of held) ui.setKey(n, false); held.clear(); post({ type: 'alloff' }); },
   // MIDI
   learning: () => document.body.classList.contains('learning'),
@@ -179,6 +181,14 @@ $('midiCh').onchange = (e) => { midi.channel = +e.target.value; };
 $('midiChB').innerHTML = `<option value="-1">${t('vBnone')}</option>` + Array.from({ length: 16 }, (_, i) => `<option value="${i}">${t('vBch', i + 1)}</option>`).join('');
 $('midiChB').value = String(midi.channelB);
 $('midiChB').onchange = (e) => { midi.channelB = +e.target.value; };
+// MIDI clock -> 960. Value = MIDI clocks per sequencer step (24 per quarter note); 0 = internal oscillator.
+$('midiClk').innerHTML = `<option value="0">${t('clkOff')}</option>` + [[24, '1/4'], [12, '1/8'], [8, '1/8T'], [6, '1/16'], [3, '1/32']].map(([n, l]) => `<option value="${n}">${t('clkOn', l)}</option>`).join('');
+midi.clockDiv = +store.get('s55.clock', 0) || 0;
+$('midiClk').value = String(midi.clockDiv);
+midi.clockOffset = +store.get('s55.clockOffset', 0) || 0;
+$('midiOff').value = String(midi.clockOffset);
+$('midiOff').onchange = (e) => { const v = Math.max(-300, Math.min(300, Math.round(+e.target.value || 0))); e.target.value = String(v); midi.clockOffset = v; store.set('s55.clockOffset', v); };
+$('midiClk').onchange = (e) => { midi.clockDiv = +e.target.value; midi.ticks = 0; store.set('s55.clock', midi.clockDiv); post({ type: 'seq', c: midi.clockDiv ? 'ext' : 'int' }); };
 $('midiIn').onchange = (e) => { midi.input = e.target.value; };
 $('learn').onclick = () => {
   const on = document.body.classList.toggle('learning');

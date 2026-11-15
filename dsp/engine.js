@@ -365,6 +365,8 @@ class Seq960 extends Mod {
   constructor(fs) {
     super(fs);
     this.stage = 0; this.running = false; this.phase = 0; this.pulse = 0; this.fb = 1;
+    this.ext = false; this.since = 1e9; // external (MIDI) clock: the internal oscillator is bypassed
+    this.pend = [];                     // external clocks waiting for their offset to elapse (samples)
     this.pb = new Uint8Array(11); // previous button states: on, off, shift, set1..8
     this.pi = new Uint8Array(11); // previous trigger-input states
   }
@@ -398,7 +400,9 @@ class Seq960 extends Mod {
       else { this.stage = k - 3; this.pulse = this.fs * 0.03; }
     }
     const st = this.stage;
-    if (this.running) {
+    this.since++;
+    if (this.pend.length) { const q = this.pend; for (let k = 0; k < q.length; k++) if (--q[k] <= 0) { q.splice(k--, 1); this.extFire(); } }
+    if (this.running && !this.ext) {
       let f = this.fb;
       if (this.ic[0]) f *= exp2(i[0]);
       if (p[44] > 0.5 && st < 8) f *= exp2(p[16 + st] * 0.2 * (1 << p[43]) - 1);
@@ -406,17 +410,34 @@ class Seq960 extends Mod {
       if (this.phase >= 1) { this.phase -= 1; if (this.phase >= 1) this.phase = 0; this.advance(); }
     }
     if (this.pulse > 0) this.pulse--;
-    const hi = this.running ? this.phase < 0.5 : this.pulse > 0;
+    const ext = this.ext, hi = this.running && !ext ? this.phase < 0.5 : this.pulse > 0;
     const s2 = this.stage;
     if (s2 < 8) {
       o[0] = o[1] = p[s2] * 0.2 * (1 << p[41]);
       o[2] = o[3] = p[8 + s2] * 0.2 * (1 << p[42]);
       o[4] = o[5] = p[16 + s2] * 0.2 * (1 << p[43]);
     } else { o[0] = o[1] = o[2] = o[3] = o[4] = o[5] = 0; }
-    o[6] = this.running && this.phase < 0.5 ? 5 : 0;
+    o[6] = this.running && (ext ? this.pulse > 0 : this.phase < 0.5) ? 5 : 0;
     for (let k = 0; k < 8; k++) o[7 + k] = (k === s2 && hi) ? 5 : 0;
   }
   state() { return [this.stage, this.running ? 1 : 0]; }
+  // --- external clock (MIDI): one call per step; gate = half the time since the previous step
+  extClock(delay) { // delay in seconds (clock offset / latency compensation)
+    if (delay > 0 && this.pend.length < 64) this.pend.push(delay * this.fs); else this.extFire();
+  }
+  extFire() {
+    if (!this.ext || !this.running) return;
+    this.advance();
+    this.pulse = this.since > this.fs * 2 ? this.fs * 0.03 : clamp(this.since * 0.5, this.fs * 0.004, this.fs * 0.5);
+    this.since = 0;
+  }
+  extTransport(cmd) { // 'start' (from the top), 'continue', 'stop'
+    if (!this.ext) return;
+    this.pend.length = 0;
+    if (cmd === 'stop') { this.running = false; return; }
+    if (cmd === 'start') this.stage = 8; // the first clock lands on the first active stage
+    this.running = true; this.since = 1e9;
+  }
 }
 Seq960.params = [
   ...[...'abc'].flatMap((r) => Array.from({ length: 8 }, (_, i) => r + (i + 1))),
@@ -694,6 +715,13 @@ export class Engine {
   noteOn(n, v, k = 0) { const kb = this.kbds[k]; kb && kb.noteOn(n, v); }
   noteOff(n, k = 0) { const kb = this.kbds[k]; kb && kb.noteOff(n); }
   allOff() { for (const kb of this.kbds) kb.allOff(); }
+  seq(cmd, delay = 0) { // external clock control of every 960: 'ext' / 'int' / 'clock' / 'start' / 'continue' / 'stop'
+    for (const m of this.list) {
+      if (!(m instanceof Seq960)) continue;
+      if (cmd === 'ext') m.ext = true; else if (cmd === 'int') m.ext = false;
+      else if (cmd === 'clock') m.extClock(delay); else m.extTransport(cmd);
+    }
+  }
   ctl(kind, v) { const k = this.kbd; if (!k) return; if (kind === 'bend') k.bend = v; else if (kind === 'mod') k.mod = v; else if (kind === 'at') k.at = v; }
   tick() {
     const order = this.order, n = order.length;

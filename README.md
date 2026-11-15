@@ -28,6 +28,7 @@ Offline engine tests: tuning, 1 V/oct filter tracking, envelope timing, the sequ
 - **Triggers**: rectangular jacks are S-triggers (keyboard to envelopes). The 960 outputs V-triggers, which the 961 converts.
 - **Keyboard**: on-screen keys, computer keys (`A W S E D F T G Y H U J K`, `Z`/`X` for octave) or MIDI.
 - **MIDI**: voice A (950 panel) receives notes, pitch bend, mod wheel and aftertouch; voice B (950B panel) receives the notes on its own channel (channel 2 by default). Right-click any knob, switch or button and choose *MIDI learn* to map a hardware control (CC, pitch bend or channel pressure). Mappings are stored in the browser.
+- **MIDI clock**: choose a step length in the *960* selector of the toolbar (1/4 to 1/32) and the 960 sequencer follows external MIDI clock, Start, Continue and Stop instead of its own oscillator. Without a Start message, the 960 ON and OFF buttons start and stop it. *Offset ms* shifts the steps against the clock to compensate latency: negative plays them earlier (predicted from the clock period), positive later.
 - **Patches**: 33 factory patches grouped by category, plus save, export and import as JSON.
 - **Language**: Spanish or English, from the selector in the toolbar. Panel legends stay in English.
 
